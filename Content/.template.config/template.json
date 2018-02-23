@@ -1,134 +1,136 @@
 ﻿{
-  "$schema": "http://json.schemastore.org/template",
-  "author": "Tomasz Heimowski",
-  "classifications": [ "F#", "Web", "Suave", "Fable", "Elmish", "Giraffe", "Bulma" ],
-  "name": "SAFE-Stack Web App v0.8.2",
-  "tags": {
-    "language": "F#",
-    "type": "project"
-  },
-  "identity": "SAFE.Template",
-  "shortName": "SAFE",
-  "symbols": {
-    "Server": {
-      "type": "parameter",
-      "dataType": "choice",
-      "defaultValue": "suave",
-      "choices": [
-        {
-          "choice": "suave",
-          "description": "lightweight, non-blocking web server (standalone)"
-        },
-        {
-          "choice": "giraffe",
-          "description": "a functional micro web framework based on ASP.NET Core"
-        }
-      ]
+    "$schema": "http://json.schemastore.org/template",
+    "author": "Tomasz Heimowski",
+    "classifications": ["F#", "Web", "Suave", "Fable", "Elmish", "Giraffe", "Bulma"],
+    "name": "SAFE-Stack Web App v0.8.2",
+    "tags": {
+        "language": "F#",
+        "type": "project"
     },
-    "Fulma": {
-      "type": "parameter",
-      "dataType": "choice",
-      "defaultValue": "none",
-      "choices": [
-        {
-          "choice": "none",
-          "description": "don't add Fulma (Fable bindings for Bulma.io) at all"
+    "identity": "SAFE.Template",
+    "shortName": "SAFE",
+    "symbols": {
+        "Server": {
+            "type": "parameter",
+            "dataType": "choice",
+            "defaultValue": "suave",
+            "choices": [{
+                    "choice": "suave",
+                    "description": "lightweight, non-blocking web server (standalone)"
+                },
+                {
+                    "choice": "giraffe",
+                    "description": "a functional micro web framework based on ASP.NET Core"
+                }
+            ]
         },
-        {
-          "choice": "basic",
-          "description": "adds Fulma basic template"
+        "Fulma": {
+            "type": "parameter",
+            "dataType": "choice",
+            "defaultValue": "none",
+            "choices": [{
+                    "choice": "none",
+                    "description": "don't add Fulma (Fable bindings for Bulma.io) at all"
+                },
+                {
+                    "choice": "basic",
+                    "description": "adds Fulma basic template"
+                },
+                {
+                    "choice": "hero",
+                    "description": "adds Fulma with 'Hero' Bulma template from https://dansup.github.io/bulma-templates/"
+                },
+                {
+                    "choice": "landing",
+                    "description": "adds Fulma with 'Landing' Bulma template from https://dansup.github.io/bulma-templates/"
+                }
+            ]
         },
-        {
-          "choice": "hero",
-          "description": "adds Fulma with 'Hero' Bulma template from https://dansup.github.io/bulma-templates/"
+        "Remoting": {
+            "type": "parameter",
+            "dataType": "bool",
+            "defaultValue": "false",
+            "description": "adds Fable.Remoting to server and client"
         },
-        {
-          "choice": "landing",
-          "description": "adds Fulma with 'Landing' Bulma template from https://dansup.github.io/bulma-templates/"
+        "Docker": {
+            "type": "parameter",
+            "dataType": "bool",
+            "defaultValue": "false",
+            "description": "additional FAKE targets to bundle and build Docker image"
+        },
+        "NPM": {
+            "type": "parameter",
+            "dataType": "bool",
+            "defaultValue": "false",
+            "description": "use NPM instead of default Yarn for JS package management"
         }
-      ]
     },
-    "Remoting": {
-      "type": "parameter",
-      "dataType": "bool",
-      "defaultValue": "false",
-      "description": "adds Fable.Remoting to server and client"
+    "sources": [{
+        "exclude": "**/.template.config/**/*",
+        "modifiers": [{
+                "condition": "(Server == \"suave\")",
+                "exclude": ["**/ServerGiraffe.fs"],
+                "rename": {
+                    "ServerSuave.fs": "Server.fs"
+                }
+            },
+            {
+                "condition": "(Server == \"giraffe\")",
+                "exclude": ["**/ServerSuave.fs"],
+                "rename": {
+                    "ServerGiraffe.fs": "Server.fs"
+                }
+            },
+            {
+                "exclude": "**/hero.css",
+                "condition": "(Fulma != \"hero\")"
+            },
+            {
+                "exclude": "**/landing.css",
+                "condition": "(Fulma != \"landing\")"
+            },
+            {
+                "exclude": "**/Dockerfile",
+                "condition": "(!Docker)"
+            }
+        ]
+    }],
+    "SpecialCustomOperations": {
+        "**/paket.*": {
+            "operations": [{
+                "type": "conditional",
+                "configuration": {
+                    "if": ["#if"],
+                    "else": ["#else"],
+                    "elseif": ["#elseif"],
+                    "endif": ["#endif"],
+                    "trim": "true",
+                    "wholeLine": "true"
+                }
+            }]
+        },
+        "**/*.fsx": {
+            "operations": [{
+                "type": "conditional",
+                "configuration": {
+                    "if": ["#if"],
+                    "else": ["#else"],
+                    "elseif": ["#elseif"],
+                    "endif": ["#endif"],
+                    "trim": "true",
+                    "wholeLine": "true"
+                }
+            }]
+        }
     },
-    "Docker": {
-      "type": "parameter",
-      "dataType": "bool",
-      "defaultValue": "false",
-      "description": "additional FAKE targets to bundle and build Docker image"
-    },
-    "NPM": {
-      "type": "parameter",
-      "dataType": "bool",
-      "defaultValue": "false",
-      "description": "use NPM instead of default Yarn for JS package management"
-    }
-  },
-  "sources": [
-    {
-      "exclude": "**/.template.config/**/*",
-      "modifiers": [
-        {
-          "condition": "(Server == \"suave\")",
-          "exclude": [ "**/ServerGiraffe.fs" ],
-          "rename": {
-            "ServerSuave.fs": "Server.fs"
-          }
+    "postActions": [{
+        "condition": "(OS != \"Windows_NT\")",
+        "description": "Make scripts executable",
+        "manualInstructions": [{ "text": "Run 'chmod +x *.sh'" }],
+        "actionId": "cb9a6cf3-4f5c-4860-b9d2-03a574959774",
+        "args": {
+            "+x": "*.sh"
         },
-        {
-          "condition": "(Server == \"giraffe\")",
-          "exclude": [ "**/ServerSuave.fs" ],
-          "rename": {
-            "ServerGiraffe.fs": "Server.fs"
-          }
-        },
-        {
-          "exclude": "**/hero.css",
-          "condition": "(Fulma != \"hero\")"
-        },
-        {
-          "exclude": "**/landing.css",
-          "condition": "(Fulma != \"landing\")"
-        },
-        {
-          "exclude": "**/Dockerfile",
-          "condition": "(!Docker)"
-        }
-      ]
-    }
-  ],
-  "SpecialCustomOperations": {
-    "**/paket.*": {
-      "operations": [
-        {
-          "type": "conditional",
-          "configuration": {
-            "if": [ "#if" ],
-            "else": [ "#else" ],
-            "elseif": [ "#elseif" ],
-            "endif": [ "#endif" ],
-            "trim": "true",
-            "wholeLine": "true"
-          }
-        }
-      ]
-    },"**/*.fsx": {
-      "operations": [
-        {
-          "type": "conditional",
-          "configuration": {
-            "if": [ "#if" ],
-            "else": [ "#else" ],
-            "elseif": [ "#elseif" ],
-            "endif": [ "#endif" ],
-            "trim": "true",
-            "wholeLine": "true"
-          }
-        }
-      ]
-    }
-  }
+        "continueOnError": true
+    }]
 }
